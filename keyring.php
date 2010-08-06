@@ -8,4 +8,6 @@ Author: The Open AgroClimate Team
 Author URI: http://open.agroclimate.org/
 License: BSD Modified
 */
+
+echo "Something is coming soon. I promise"
 ?>
