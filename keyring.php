@@ -9,15 +9,15 @@ Author URI: http://open.agroclimate.org/
 License: BSD Modified
 */
 
-add_action('admin_menu','wp_keyring_menu');
+add_action( 'admin_menu', 'wp_keyring_menu' );
 
 function wp_keyring_menu() {
-	add_management_page('WP Keyring Settings', 'WP Keyring', 'manage_options', 'wp_keyring_settings', 'wp_keyring_settings');
+	add_management_page( 'WP Keyring Settings', 'WP Keyring', 'manage_options', 'wp_keyring_settings', 'wp_keyring_settings' );
 }
 
 function wp_keyring_settings() {
-	if(!current_user_can('manage_options')) {
-		wp_die( __('You do not have sufficient permissions to access this page.') );
+	if( !current_user_can( 'manage_options' ) ) {
+		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
 	
 	echo '<div class="wrap">';
