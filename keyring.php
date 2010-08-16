@@ -51,7 +51,7 @@ function wp_keyring_directory_page() {
 					$wpkr_keys = get_site_option( 'wp_keyring_keys' );
 				else
 					$wpkr_keys = get_option( 'wp_keyring_keys' );
-				if( !$wpkr_keys ) {
+					if( !$wpkr_keys ) {
 			?>
 			<tr>
 				<td colspan="2"><?php _e( 'No keys added', 'wp_keyring' ); ?></td>
@@ -59,9 +59,10 @@ function wp_keyring_directory_page() {
 			<?php
 				}
 				else {
-					foreach( $wpkr_keys as $wpkr_keyinfo ) {
-						echo '<tr><td>' . $wpkr_keyinfo[ 'wpkr_display' ] . '</td>';
-						echo '<td>' . $wpkr_keyinfo[ 'wpkr_key' ] . '</td></tr>';
+					foreach( $wpkr_keys as $wpkr_keyid => $wpkr_keyinfo ) {
+						echo '<tr><td><strong>' . $wpkr_keyinfo[ 'wpkr_display' ] . '</strong></td>';
+						echo '<td rowspan="2">' . $wpkr_keyinfo[ 'wpkr_key' ] . '</td></tr>';
+						echo '<tr class="second"><td>Edit | <a href="'. wp_nonce_url( '?action=delete&id=' . utf8_uri_encode( $wpkr_keyid ) ) . '" title="' . __( 'Remove this key' ) . '">' . __( 'Remove' ) . '</a></td></tr>';
 					}
 				}
 			?>
@@ -85,36 +86,62 @@ function wp_keyring_directory_page() {
 }
 
 function wp_keyring_handle_actions() {
-	global $wpdb;
-	
-	if ( isset( $_POST['action'] ) ) {
+	if ( isset( $_POST['action'] ) ) {		
 		switch( $_POST['action'] ) {
 			case 'add' :
 				check_admin_referer( 'add-key-to-keyring' );
-				wp_keyring_add_key( $_POST['newkey-name'], $_POST['newkey-value'], $wpdb->siteid );
+				wp_keyring_add_key( $_POST['newkey-name'], $_POST['newkey-value'] );
+				break;
+			case 'delete' :
+				check_admin_referer( 'remove-key-from-keyring' );
+				wp_keyring_remove_key ( $_GET['id'] );
 				break;
 		}
 	}
 }
 
-function wp_keyring_add_key( $wpkr_name, $wpkr_key, $wpkr_siteid=0 ) {
-	if( is_multisite() )
-		$current = get_site_option( 'wp_keyring_keys', array() );
-	else
-		$current = get_option( 'wp_keyring_keys', array() );
-	
-	$wpkr_id = sanitize_title_with_dashes( $wpkr_name );
-	
+function wp_keyring_add_key( $wpkr_name, $wpkr_key ) {
+	$current = wp_keyring_get_keys();
+	$wpkr_keyid = wp_keyring_get_id( $wpkr_name );
 	// Verify we don't have one key with the same name on this site.
-	if( array_key_exists( $wpkr_id, $current ) ) {
+	if( array_key_exists( $wpkr_keyid, $current ) ) {
 		echo '<div id="message" class="error"><p><strong>' . __( 'A key with this name already exists. Please try again.' ) . '</strong></p></div>';
 		return;
 	}
 
-	$current[sanitize_title_with_dashes( $wpkr_name )] = array( 'wpkr_display' => $wpkr_name, 'wpkr_key' => $wpkr_key, 'wpkr_siteid' => $wpkr_siteid );
-	if( is_multisite() )
-		update_site_option( 'wp_keyring_keys', $current );
+	$current[ $wpkr_keyid ] = array( 'wpkr_display' => $wpkr_name, 'wpkr_key' => $wpkr_key );
+	if( wp_keyring_save_keys( $current ))
+		echo '<div id="message" class="updated"><p>' . __( 'Key added successfully.' ) . '</p></div>';	
 	else
-		update_option( 'wp_keyring_keys', $current );
-	echo '<div id="message" class="updated fade"><p>' . __( 'Key added successfully.' ) . '</p></div>';	
+		echo '<div id="message" class="error"><p><strong>' . __( 'Something has happened and your key was not added properly.' ) . '</strong></p></div>';
+}
+
+function wp_keyring_remove_key( $wpkr_keyid ) {
+	$current = wp_keyring_get_keys();
+	unset( $current[ $wpkr_keyid ]);
+	if( wp_keyring_save_keys( $current ) )
+		echo '<div id="message" class="updated"><p>' . __( 'Key removed successfully.' ) . '</p></div>';
+	else
+		echo '<div id="message" class="error"><p><strong>' . ( 'Something has happened and your key was not removed properly.' ) . '</strong></p></div>';
+	
+}
+
+function wp_keyring_get_keys() {
+	if ( is_multisite() ) 
+		$keys = get_site_option( 'wp_keyring_keys', array() );
+	else
+		$keys = get_option( 'wp_keyring_keys', array() );
+	return $keys;
+}
+
+function wp_keyring_save_keys( $wpkr_keys ) {
+	if( is_multisite() )
+		return update_site_option( 'wp_keyring_keys', $wpkr_keys );
+	else
+		return update_option( 'wp_keyring_keys', $wpkr_keys );
+}
+
+function wp_keyring_get_id( $wpkr_name ) {
+	global $wpdb;
+	return sanitize_title_with_dashes( $wpkr_name ) . '-' . $wpdb->siteid;
 }
