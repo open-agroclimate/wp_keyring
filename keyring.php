@@ -9,56 +9,69 @@ Author URI: http://open.agroclimate.org/
 License: BSD Modified
 */
 
-// GLOBAL VARIABLES
-global $wp_keyring_db_version;
-$wp_keyring_db_version = "1.0";
-
 // HOOKS AND ACTIONS
 add_action( 'admin_menu', 'wp_keyring_menu' );
-register_activation_hook( __FILE__, 'wp_keyring_installer');
+add_action( 'admin_init', 'wp_keyring_init' );
 
-
-function wp_keyring_installer() {
-	global $wp_keyring_db_version;
-	global $wpdb;
-	
-	// Only run this if you don't have the correct version (or any version at all).
-	// NOTE: I know you could short circuit this by creating it all manually, but you can mess up your own install if you want.	
-	if ( ( !get_option( "wp_keyring_db_version") ) || ( get_option( "wp_keyring_db_version" ) != $wp_keyring_db_version) ) {
-		$table_name = $wpdb->prefix . 'keyring_plugin';
-		$structure = "CREATE TABLE $table_name (
-			id INT(9) NOT NULL AUTO_INCREMENT,
-			blog_id INT(11) NOT NULL DEFAULT '0',
-			key_id VARCHAR(25) NOT NULL,
-			name VARCHAR(100) NOT NULL DEFAULT '',
-			api_key TEXT NOT NULL DEFAULT '',
-			PRIMARY KEY  (id),
-			KEY  (key_id)
-			);";
-	
-	
-		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
-		dbDelta( $structure );
-	}
-	
-	// If this is the first time running the structure, create the option. If you are upgrading, update the version as well.
-	if (!get_option( "wp_keyring_db_version" ) )	
-		add_option( "wp_keyring_db_version", $wp_keyring_db_version );
-	if ( get_option( "wp_keyring_db_version" ) != $wp_keyring_db_version )
-		update_option( "wp_keyring_db_version", $wp_keyring_db_version );
+function wp_keyring_init() {
+	// Store all .mo files underneath the <plugin_dir>/locale directory.
+	$plugin_dir = basename( dirname( __FILE__ ) );
+	load_plugin_textdomain( 'wp_keyring', null, $plugin_dir . '/languages' );
 }
 
 function wp_keyring_menu() {
-	add_management_page( 'WP Keyring Settings', 'WP Keyring', 'manage_options', 'wp_keyring_settings', 'wp_keyring_settings' );
+	add_management_page( 'WP Keyring Directory', 'WP Keyring', 'manage_options', 'wp_keyring_directory', 'wp_keyring_directory_page' );
 }
 
-function wp_keyring_settings() {
+function wp_keyring_directory_page() {
 	if( !current_user_can( 'manage_options' ) ) {
 		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
 	}
-	
-	echo '<div class="wrap">';
-	echo '<p>The Form Goes Here</p>';
-	echo '</div>';
-}
 ?>
+<div class="wrap">
+	<?php screen_icon(); ?>
+	<h2><?php _e( 'WP Keyring Directory', 'wp_keyring' ); ?></h2>
+	<table class="widefat" cellspacing="0" id="wp_keyring-directory-table">
+		<thead>
+			<tr>
+				<th scope="col" class="manage-column"><?php _e( 'Name', 'wp_keyring' ); ?></th>
+				<th scope="col" class="manage-column"><?php _e( 'Key', 'wp_keyring' ); ?></th>
+			</tr>
+		</thead>
+		<tfoot>
+			<tr>
+				<th scope="col" class="manage-column"><?php _e( 'Name', 'wp_keyring' ); ?></th>
+				<th scope="col" class="manage-column"><?php _e( 'Key', 'wp_keyring' ); ?></th>
+			</tr>
+		</tfoot>
+		<tbody class="plugins">
+			<tr>
+				<td colspan="2"><?php _e( 'No keys added', 'wp_keyring' ); ?></td>
+			</tr>
+		</tbody>
+	</table>
+	
+	<form name="wp_keyring-add-form" method="POST" action="">
+		<?php wp_nonce_field( 'add-key-to-keyring' ); ?>
+		<input type="hidden" name="action" value="add" />
+		<p><?php _e( 'Key Name:', 'wp_keyring' ); ?></p>
+		<input type="text" name="newkey-name" value="" size="60" />
+		<p><?php _e( 'API Key:', 'wp_keyring' ); ?></p>
+		<textarea name="neykey-value" value="" cols="60" rows="5"></textarea>
+		<hr />
+		<p class="submit">
+			<input type="submit" name="submit" class="button-primary" value="<?php esc_attr_e( 'Add Key' ); ?>" />
+		</p>
+	</form>
+</div>
+<?php
+}
+
+
+// Actual loading stuff
+if ( !empty( $_REQUEST['action'] ) )
+	switch( $_REQUEST['action'] ) {
+		case 'add':
+			check_admin_referer( 'add-key-to-keyring' );
+			break;
+	}

@@ -1,0 +1,49 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: WP Keyring\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2010-08-12 16:01-0500\n"
+"PO-Revision-Date: 2010-08-12 16:01-0500\n"
+"Last-Translator: Christopher Villalobos <cvillalobos@ufl.edu>\n"
+"Language-Team: The Open Agroclimate Project <open@agroclimate.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-KeywordsList: _e;gettext;gettext_noop;__;_c\n"
+"X-Poedit-Basepath: .\n"
+"Plural-Forms: nplurals=2; plural=n>1\n"
+"X-Poedit-Language: English\n"
+"X-Poedit-Country: UNITED STATES\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-SearchPath-0: ..\n"
+
+#: ../keyring.php:28
+msgid "You do not have sufficient permissions to access this page."
+msgstr "Voce nao tem direito de acessar esta pagina."
+
+#: ../keyring.php:33
+msgid "WP Keyring Directory"
+msgstr "Diretorio de WP Keyring"
+
+#: ../keyring.php:37
+#: ../keyring.php:43
+msgid "Name"
+msgstr "Nome"
+
+#: ../keyring.php:38
+#: ../keyring.php:44
+msgid "Key"
+msgstr "Chave"
+
+#: ../keyring.php:49
+msgid "No keys added"
+msgstr "Chaves nao disponiveis"
+
+#: ../keyring.php:57
+msgid "Key Name:"
+msgstr "Nome da Chave:"
+
+#: ../keyring.php:59
+msgid "API Key:"
+msgstr "Chave API:"
+
