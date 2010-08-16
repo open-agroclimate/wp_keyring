@@ -46,9 +46,25 @@ function wp_keyring_directory_page() {
 			</tr>
 		</tfoot>
 		<tbody class="plugins">
+			<?php
+				if( is_multisite() )
+					$wpkr_keys = get_site_option( 'wp_keyring_keys' );
+				else
+					$wpkr_keys = get_option( 'wp_keyring_keys' );
+				if( !$wpkr_keys ) {
+			?>
 			<tr>
 				<td colspan="2"><?php _e( 'No keys added', 'wp_keyring' ); ?></td>
 			</tr>
+			<?php
+				}
+				else {
+					foreach( $wpkr_keys as $wpkr_keyinfo ) {
+						echo '<tr><td>' . $wpkr_keyinfo[ 'wpkr_display' ] . '</td>';
+						echo '<td>' . $wpkr_keyinfo[ 'wpkr_key' ] . '</td></tr>';
+					}
+				}
+			?>
 		</tbody>
 	</table>
 	
