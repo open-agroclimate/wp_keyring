@@ -28,6 +28,7 @@ function wp_keyring_menu() {
 }
 
 function wp_keyring_directory_page() {
+	$wpkr_page_uri = "tools.php?page=wp_keyring_directory";
 ?>
 <div class="wrap">
 	<?php screen_icon(); ?>
@@ -62,7 +63,7 @@ function wp_keyring_directory_page() {
 					foreach( $wpkr_keys as $wpkr_keyid => $wpkr_keyinfo ) {
 						echo '<tr><td><strong>' . $wpkr_keyinfo[ 'wpkr_display' ] . '</strong></td>';
 						echo '<td rowspan="2">' . $wpkr_keyinfo[ 'wpkr_key' ] . '</td></tr>';
-						echo '<tr class="second"><td>Edit | <a href="'. wp_nonce_url( '?action=delete&id=' . utf8_uri_encode( $wpkr_keyid ) ) . '" title="' . __( 'Remove this key' ) . '">' . __( 'Remove' ) . '</a></td></tr>';
+						echo '<tr class="second"><td>Edit | <a href="'. wp_nonce_url( $wpkr_page_uri . '&action=delete&id=' . utf8_uri_encode( $wpkr_keyid ), 'remove-key-from-keyring' ) . '" title="' . __( 'Remove this key' ) . '">' . __( 'Remove' ) . '</a></td></tr>';
 					}
 				}
 			?>
@@ -86,15 +87,15 @@ function wp_keyring_directory_page() {
 }
 
 function wp_keyring_handle_actions() {
-	if ( isset( $_POST['action'] ) ) {		
-		switch( $_POST['action'] ) {
+	if ( isset( $_REQUEST['action'] ) ) {		
+		switch( $_REQUEST['action'] ) {
 			case 'add' :
 				check_admin_referer( 'add-key-to-keyring' );
-				wp_keyring_add_key( $_POST['newkey-name'], $_POST['newkey-value'] );
+				wp_keyring_add_key( $_REQUEST[ 'newkey-name' ], $_REQUEST[ 'newkey-value' ] );
 				break;
 			case 'delete' :
 				check_admin_referer( 'remove-key-from-keyring' );
-				wp_keyring_remove_key ( $_GET['id'] );
+				wp_keyring_remove_key ( $_REQUEST[ 'id' ] );
 				break;
 		}
 	}
@@ -118,11 +119,16 @@ function wp_keyring_add_key( $wpkr_name, $wpkr_key ) {
 
 function wp_keyring_remove_key( $wpkr_keyid ) {
 	$current = wp_keyring_get_keys();
+	if( !array_key_exists( $wpkr_keyid, $current ) ) {
+		echo '<div id="message" class="error"><p><strong>' . __( 'This key does not exist.' ) . '</strong></p></div>';
+		return;
+	}
+		
 	unset( $current[ $wpkr_keyid ]);
 	if( wp_keyring_save_keys( $current ) )
 		echo '<div id="message" class="updated"><p>' . __( 'Key removed successfully.' ) . '</p></div>';
 	else
-		echo '<div id="message" class="error"><p><strong>' . ( 'Something has happened and your key was not removed properly.' ) . '</strong></p></div>';
+		echo '<div id="message" class="error"><p><strong>' . __( 'Something has happened and your key was not removed properly.' ) . '</strong></p></div>';
 	
 }
 
