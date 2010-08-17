@@ -35,13 +35,13 @@ function wp_keyring_directory_page() {
 	<h2><?php _e( 'WP Keyring Directory', 'wp_keyring' ); ?></h2>
 	<h3><?php _e( 'Edit Key' ); ?></h3>
 	<?php
-	if( $_REQUEST[ 'action' ] == 'wpkr_edit' ) {
+	if( ( isset($_REQUEST[ 'action' ] ) ) && ( $_REQUEST[ 'action' ] == 'wpkr_edit' ) ) {
 		if( !isset($_REQUEST[ 'id' ] ) ) {
 			wp_die( __( 'You are improperly attempting to modify a key.' ) );
 		}
 		check_admin_referer( 'edit-' . $_REQUEST[ 'id' ] . '-on-keyring' );
 		$wpkr_key = wp_keyring_get_key( $_REQUEST[ 'id' ] );
-		if( !$wpkr_key )
+		if( $wpkr_key == '' )
 			wp_die( __( 'They requested key does not exist.' ) );
 	?>
 	<form name="wp_keyring-edit-form" method="POST" action="<?php echo $wpkr_page_uri; ?>">
@@ -197,7 +197,7 @@ function wp_keyring_get_key( $wpkr_keyid, $wpkr_only_the_key=false ) {
 			return $current[ $wpkr_keyid ];
 	}
 	else {
-		return false;
+		return '';
 	}
 }
 
