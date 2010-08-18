@@ -35,7 +35,7 @@ function wp_keyring_directory_page() {
 	<h2><?php _e( 'WP Keyring Directory', 'wp_keyring' ); ?></h2>
 	<h3><?php _e( 'Edit Key' ); ?></h3>
 	<?php
-	if( ( isset($_REQUEST[ 'action' ] ) ) && ( $_REQUEST[ 'action' ] == 'wpkr_edit' ) ) {
+	if( ( array_key_exists('action', $_REQUEST ) ) && ( $_REQUEST[ 'action' ] == 'wpkr_edit' ) ) {
 		if( !isset($_REQUEST[ 'id' ] ) ) {
 			wp_die( __( 'You are improperly attempting to modify a key.' ) );
 		}
@@ -137,6 +137,11 @@ function wp_keyring_handle_actions() {
 }
 
 function wp_keyring_add_key( $wpkr_name, $wpkr_key ) {
+	$wpkr_name = trim( $wpkr_name );
+	if( empty( $wpkr_name ) ) {
+		echo '<div id="message" class="error"><p><strong>' . __( 'You need to put in a key name.' ) . '</strong></p></div>';
+		return;
+	}
 	$current = wp_keyring_get_keys();
 	$wpkr_keyid = wp_keyring_get_id( $wpkr_name );
 	// Verify we don't have one key with the same name on this site.
@@ -145,7 +150,7 @@ function wp_keyring_add_key( $wpkr_name, $wpkr_key ) {
 		return;
 	}
 
-	$current[ $wpkr_keyid ] = array( 'wpkr_display' => $wpkr_name, 'wpkr_key' => $wpkr_key );
+	$current[ $wpkr_keyid ] = array( 'wpkr_display' => wp_filter_nohtml_kses( $wpkr_name ), 'wpkr_key' => wp_filter_nohtml_kses( $wpkr_key ) );
 	if( wp_keyring_save_keys( $current ) )
 		echo '<div id="message" class="updated"><p>' . __( 'Key added successfully.' ) . '</p></div>';	
 	else
@@ -153,12 +158,17 @@ function wp_keyring_add_key( $wpkr_name, $wpkr_key ) {
 }
 
 function wp_keyring_update_key( $wpkr_keyid, $wpkr_name, $wpkr_key ) {
+	$wpkr_name = trim( $wpkr_name );
+	if( empty( $wpkr_name ) ) {
+		echo '<div id="message" class="error"><p><strong>' . __( 'You need to put in a key name.' ) . '</strong></p></div>';
+		return;
+	}
 	$current = wp_keyring_get_keys();
 	if( !array_key_exists( $wpkr_keyid, $current ) ) {
 		echo '<div id="message" class="error"><p><strong>' . __( 'This key does not exist.' ) . '</strong></p></div>';
 		return;
 	}
-	$current[ $wpkr_keyid ] = array( 'wpkr_display' => $wpkr_name, 'wpkr_key' => $wpkr_key );
+	$current[ $wpkr_keyid ] = array( 'wpkr_display' => wp_filter_nohtml_kses( $wpkr_name ), 'wpkr_key' => wp_filter_nohtml_kses( $wpkr_key ) );
 	if( wp_keyring_save_keys( $current ) )
 		echo '<div id="message" class="updated"><p>' . __( 'Key updated successfully.' ) . '</p></div>';
 	else
